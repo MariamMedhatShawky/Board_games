@@ -1,0 +1,214 @@
+#ifndef GAME_NUMBER_2_SUS_H
+#define GAME_NUMBER_2_SUS_H
+
+#include <iostream>
+#include "BoardGame_Classes.h"
+using namespace std;
+
+int counter = 0;
+// SUS_Board class definition
+template <typename T>
+class SUS_Board : public Board<T> {
+protected:
+    int s_score;
+    int u_score;
+public:
+
+    SUS_Board() {
+        this->n_moves = 0;
+        this->s_score = 0;
+        this->u_score = 0;
+        this->rows = 3;
+        this->columns = 3;
+        this->board = new char*[this->rows];
+        for (int i = 0; i < this->rows; ++i) {
+            this->board[i] = new char[this->columns];
+            for (int j = 0; j < this->columns; ++j) {
+                this->board[i][j] = '-';
+            }
+        }
+    }
+
+    ~SUS_Board() {
+        for (int i = 0; i < this->rows; ++i) {
+            delete[] this->board[i];
+        }
+        delete[] this->board;
+    }
+
+    bool update_board(int x, int y, T sym) override {
+        if(this->n_moves == 10) return true;
+        if (x >= 0 && x < this->rows && y >= 0 && y < this->columns && this->board[x][y] == '-') {
+            this->n_moves++;
+            counter++;
+            this->board[x][y] = toupper(sym);
+
+            if (check_new_sus_sequence(x, y, sym)) {
+                if(sym == 'S' || sym == 's') {
+                    this->s_score++;
+                }
+                else{
+                    this->u_score++;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    int check_new_sus_sequence(int x, int y, T sym) {
+
+        int sus_count = 0; // Count of SUS sequences formed
+
+        // Horizontal sequence
+        if (y > 0 && y < this->columns - 1) { // Middle position in a row
+            if (this->board[x][y - 1] == 'S' && this->board[x][y + 1] == 'S' && this->board[x][y] == 'U') {
+                sus_count++;
+            }
+        }
+        if (y > 1) { // Right end completes sequence
+            if (this->board[x][y - 1] == 'U' && this->board[x][y - 2] == 'S' && this->board[x][y] == 'S') {
+                sus_count++;
+            }
+        }
+        if (y < this->columns - 2) { // Left end completes sequence
+            if (this->board[x][y + 1] == 'U' && this->board[x][y + 2] == 'S' && this->board[x][y] == 'S') {
+                sus_count++;
+            }
+        }
+
+        // Vertical sequence
+        if (x > 0 && x < this->rows - 1) { // Middle position in a column
+            if (this->board[x - 1][y] == 'S' && this->board[x + 1][y] == 'S' && this->board[x][y] == 'U') {
+                sus_count++;
+            }
+        }
+        if (x > 1) { // Bottom completes sequence
+            if (this->board[x - 1][y] == 'U' && this->board[x - 2][y] == 'S' && this->board[x][y] == 'S') {
+                sus_count++;
+            }
+        }
+        if (x < this->rows - 2) { // Top completes sequence
+            if (this->board[x + 1][y] == 'U' && this->board[x + 2][y] == 'S' && this->board[x][y] == 'S') {
+                sus_count++;
+            }
+        }
+
+        // Main diagonal sequence
+        if (x > 0 && x < this->rows - 1 && y > 0 && y < this->columns - 1) { // Middle position on diagonal
+            if (this->board[x - 1][y - 1] == 'S' && this->board[x + 1][y + 1] == 'S' && this->board[x][y] == 'U') {
+                sus_count++;
+            }
+        }
+        if (x > 1 && y > 1) { // Bottom-right completes sequence
+            if (this->board[x - 1][y - 1] == 'U' && this->board[x - 2][y - 2] == 'S' && this->board[x][y] == 'S') {
+                sus_count++;
+            }
+        }
+        if (x < this->rows - 2 && y < this->columns - 2) { // Top-left completes sequence
+            if (this->board[x + 1][y + 1] == 'U' && this->board[x + 2][y + 2] == 'S' && this->board[x][y] == 'S') {
+                sus_count++;
+            }
+        }
+
+        // Anti-diagonal sequence
+        if (x > 0 && x < this->rows - 1 && y > 0 && y < this->columns - 1) { // Middle position on anti-diagonal
+            if (this->board[x - 1][y + 1] == 'S' && this->board[x + 1][y - 1] == 'S' && this->board[x][y] == 'U') {
+                sus_count++;
+            }
+        }
+        if (x > 1 && y < this->columns - 2) { // Bottom-left completes sequence
+            if (this->board[x - 1][y + 1] == 'U' && this->board[x - 2][y + 2] == 'S' && this->board[x][y] == 'S') {
+                sus_count++;
+            }
+        }
+        if (x < this->rows - 2 && y > 1) { // Top-right completes sequence
+            if (this->board[x + 1][y - 1] == 'U' && this->board[x + 2][y - 2] == 'S' && this->board[x][y] == 'S') {
+                sus_count++;
+            }
+        }
+        cout << "Move at (" << x << ", " << y << ") by player " << sym
+             << " formed " << sus_count << " new SUS sequences.\n";
+
+        return sus_count; // Return total SUS sequences formed
+    }
+
+
+    void display_board() override {
+        if(this->n_moves == 10) return;
+        for (int i = 0; i < this->rows; ++i) {
+            for (int c = 0; c < this->columns; ++c) {
+                cout << this->board[i][c] << "  ";
+            }
+            cout << endl;
+        }
+        cout << endl;
+    }
+
+    bool is_win() override {
+        if(this->n_moves == 9) {
+            if (s_score > u_score) {
+                cout << "Game ended. Player with letter 'S' WiNS and" << " " << " scored " << s_score
+                     << ", while player with the letter 'U'" << " " << " scored " << u_score << ".\n";
+                return true;
+
+            }
+            else if (u_score > s_score) {
+                this->n_moves = 10;
+                counter = 10;
+                return false;
+            }
+        }
+        if (this->n_moves == 10) {
+            cout << "Game ended. Player with letter 'U' WiNS and " << " " << " scored " << u_score
+                 << ", while player with the letter 'S'" << " " << " scored " << s_score << ".\n";
+            return true;
+        }
+        return false;
+    }
+
+    bool is_draw() override {
+        if (this->n_moves == 9 && s_score == u_score) {
+            cout << "Game ended in a draw! Both players scored " << s_score << ".\n";
+            return true;
+        }
+        return false;
+    }
+
+    bool game_is_over() override {
+        return this->n_moves == 9 ;
+    }
+};
+
+// SUS_Player class definition
+template <typename T>
+class SUS_Player : public Player<T> {
+public:
+    SUS_Player(string name, T symbol, Board<T>* board) : Player<T>(name, symbol) {
+        this->boardPtr = board;
+    }
+
+    void getmove(int& x, int& y) override {
+        if(counter == 10) return ;
+        cout << "\nPlease enter your move x and y separated by spaces: \n";
+        cin >> x >> y;
+    }
+};
+
+// SUS_Random_Player class definition
+template <typename T>
+class SUS_Random_Player : public RandomPlayer<T> {
+public:
+    SUS_Random_Player(T symbol, Board<T>* board) : RandomPlayer<T>(symbol) {
+        this->boardPtr = board;
+        this->name = "Random Player";
+        srand(static_cast<unsigned int>(time(0)));  // Seed the random number generator
+    }
+
+    void getmove(int& x, int& y) override {
+        x = rand() % 3;  // Random number between 0 and 2
+        y = rand() % 3;
+    }
+};
+
+#endif
