@@ -1,0 +1,86 @@
+#include <iostream>
+#include "BoardGame_Classes.h"
+#include "SUS.h"
+
+using namespace std;
+
+int main() {
+    int choice;
+    char choice2;
+    // Initialize the players array
+    Player<char>* players[2];
+
+    // Player names
+    string playerSName, playerUName;
+
+    // Initialize players to nullptr
+    Player<char>* player1 = nullptr;
+    Player<char>* player2 = nullptr;
+
+    cout << "Enter Player1 name: ";
+    cin >> playerSName;
+
+    cout << "Choose the symbol for player1 ('S'/'U')\n";
+    cin >> choice2;
+
+    cout << "Choose Player1 type:\n";
+    cout << "1. Human\n";
+    cout << "2. Random Computer\n";
+    cin >> choice;
+
+    if (choice == 1 && (choice2 == 'S' || choice2 == 's')) {
+        player1 = new SUS_Player<char>(playerSName, 'S', nullptr);
+    } else if (choice == 1 && (choice2 == 'U' || choice2 == 'u')) {
+        player1 = new SUS_Player<char>(playerSName, 'U', nullptr);
+    } else if (choice == 2 && (choice2 == 'S' || choice2 == 's')) {
+        player1 = new SUS_Random_Player<char>('S', nullptr);
+    } else if (choice == 2 && (choice2 == 'U' || choice2 == 'u')) {
+        player1 = new SUS_Random_Player<char>('U', nullptr);
+    }
+
+    players[0] = player1;
+
+    cout << playerSName << " " << "You have the symbol" << " " << choice2 << std::endl;
+
+    // Determine Player 2's symbol
+    char player2Symbol = (choice2 == 'S' || choice2 == 's') ? 'U' : 'S';
+
+    cout << "Enter Player2 name: ";
+    cin >> playerUName;
+
+    cout << playerUName << " " << "You have the symbol " << player2Symbol << "\n";
+    cout << "=======================" << "\n";
+
+    cout << "Choose Player 2 type:\n";
+    cout << "1. Human\n";
+    cout << "2. Random Computer\n";
+    cin >> choice;
+
+    if (choice == 1) {
+        player2 = new SUS_Player<char>(playerUName, player2Symbol, nullptr);
+    } else if (choice == 2) {
+        player2 = new SUS_Random_Player<char>(player2Symbol, nullptr);
+    }
+
+    players[1] = player2;
+
+    // Initialize the board for the game
+    SUS_Board<char>* B = new SUS_Board<char>();
+
+    // Set the board pointer in players
+    players[0]->setBoard(B);
+    players[1]->setBoard(B);
+
+    // Initialize the GameManager with the board and the players
+    GameManager<char> game(B, players);
+
+    // Run the game
+    game.run();
+
+    // Clean up dynamically allocated memory
+    delete players[0];
+    delete players[1];
+    delete B;
+
+    return 0;
+}
