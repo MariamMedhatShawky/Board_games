@@ -2,38 +2,42 @@
 #include "BoardGame_Classes.h"
 using namespace std;
 
+int moves;
+
 template<typename T>
 class TicTacToe : public Board<char> {
 public:
-    Player<char>* players[2];
-    bool flag = false;
-    TicTacToe(Player<char>* players[]) {
-        n_moves = 0;
-        rows = 5;
-        columns = 5;
-        this->players[0] = players[0]; 
-        this->players[1] = players[1];
-        board = new char*[rows];  // Create an array of pointers for rows
-        for (int i = 0; i < rows; ++i) {
-            board[i] = new char[columns];  // Allocate each row dynamically
-            for (int j = 0; j < columns; ++j) {
-                board[i][j] = '-';  // Initialize each cell with '-'
+    TicTacToe() {
+        this->n_moves = 0;
+        this->rows = 5;
+        this->columns = 5;
+        this->board = new char*[this->rows];  // Create an array of pointers for rows
+        for (int i = 0; i < this->rows; ++i) {
+            this->board[i] = new char[this->columns];  // Allocate each row dynamically
+            for (int j = 0; j < this->columns; ++j) {
+                this->board[i][j] = '-';  // Initialize each cell with '-'
             }
         }
     }
 
-    ~TicTacToe() { 
-        for (int i = 0; i < rows; ++i){ 
-            delete[] board[i];
+    ~TicTacToe() {
+        for (int i = 0; i < this->rows; ++i) {
+            delete[] this->board[i];
         }
-        delete[] board;
+        delete[] this->board;
     }
 
-    bool update_board(int x, int y, char symbol) override {
-        if (x >= 0 && x < rows && y >= 0 && y < columns) {
-            if (board[x][y] == '-') {
-                board[x][y] = symbol;
-                ++n_moves;
+    bool update_board(int x, int y, char sym) override {
+        if (this->n_moves >= 24) {
+            this->n_moves = 25;
+            moves = this->n_moves;
+            return true;
+        }
+        moves = this->n_moves;
+        if (x >= 0 && x < this->rows && y >= 0 && y < this->columns) {
+            if (this->board[x][y] == '-') {
+                this->board[x][y] = sym;
+                ++this->n_moves;
                 return true;
             } else {
                 cout << "Invalid move, please choose an empty cell.\n";
@@ -47,83 +51,96 @@ public:
 
     void display_board() override {
         cout << "----------\n";
-        for (int i = 0; i < rows; ++i) {
-            for (int j = 0; j < columns; ++j) {
-                cout << board[i][j] << " ";
+        for (int i = 0; i < this->rows; ++i) {
+            for (int j = 0; j < this->columns; ++j) {
+                cout << this->board[i][j] << " ";
             }
             cout << endl;
         }
         cout << endl;
-        
     }
 
-    int calculate_winning_patterns(char sym){
-        int score = 0;
+    bool is_win() override {
+        if (this->n_moves >= 24) {
+            int move = this->n_moves;
+            int x_score = 0;
+            int o_score = 0;
+            int score = 0;
 
-        for (int i = 0; i < rows ;++i){
-            for (int j = 0; j < columns; ++j){
-                if ( j == 1 || j == 2 || j == 3){ 
-                    if ( board[i][j] == sym && board[i][j - 1] == sym && board[i][j + 1] == sym && board[i][j] != '-'){
-                        ++score; 
+
+            for (int i = 0; i < this->rows; ++i) {
+                for (int j = 0; j < this->columns; ++j) {
+                    char sym = this->board[i][j];
+                    if (j == 1 || j == 2 || j == 3) {
+                        if (this->board[i][j] == sym && this->board[i][j - 1] == sym && this->board[i][j + 1] == sym && this->board[i][j] != '-') {
+                            ++score;
+                            if (sym == 'X' || sym == 'x') {
+                                x_score++;
+                            } else {
+                                o_score++;
+                            }
+                        }
+                    }
+                    if (i == 1 || i == 2 || i == 3){
+                        if (this->board[i][j] == sym && this->board[i + 1][j] == sym && this->board[i - 1][j] == sym && this->board[i][j] != '-') {
+                            ++score;
+                            if (sym == 'X' || sym == 'x') {
+                                x_score++;
+                            } else {
+                                o_score++;
+                            }
+                        }
                     }
                 }
-                if ( i == 1 || i == 2 || i == 3){ 
-                    if (board[i][j] == sym && board[i + 1][j] == sym && board[i - 1][j] == sym && board[i][j] != '-'){
-                        ++score; 
-                    } 
-                } 
-            } 
-        } 
-        for (int i = 0; i < rows ;++i){ 
-            for (int j = 0; j < columns ; ++j){ 
-                if ( i == 1 || i == 2 || i == 3 ){ 
-                    if (j == 1 || j == 2 || j == 3){ 
-                        if ( board[i][j] != '-' && board[i + 1][j + 1] == sym && board[i][j] == sym && board[i - 1][j - 1] == sym){ 
-                            ++score; 
-                        } 
-                        if ( board[i][j] != '-' && board[i][j] == sym && board[i - 1][j + 1] == sym && board[i + 1][j - 1] == sym){ 
-                            ++score; 
-                        } 
-                    } 
-                } 
-            } 
-        }
-        return score;
+            }
 
-    }
+            for (int i = 0; i < this->rows; ++i) {
+                for (int j = 0; j < this->columns; ++j) {
+                    char sym = this->board[i][j];
+                    if (i == 1 || i == 2 || i == 3){
+                        if (j == 1 || j == 2 || j == 3) {
+                            if (this->board[i][j] != '-' && this->board[i + 1][j + 1] == sym && this->board[i][j] == sym && this->board[i - 1][j - 1] == sym) {
+                                ++score;
+                                if (sym == 'X' || sym == 'x') {
+                                    x_score++;
+                                } else {
+                                    o_score++;
+                                }
+                            }
+                            if (this->board[i][j] != '-' && this->board[i][j] == sym && this->board[i - 1][j + 1] == sym && this->board[i + 1][j - 1] == sym) {
+                                ++score;
+                                if (sym == 'X' || sym == 'x') {
+                                    x_score++;
+                                } else {
+                                    o_score++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
-    bool is_win()override{
-        
-        if (game_is_over()){
-            
-            int player1score = calculate_winning_patterns(players[0]->getsymbol()); 
-            int player2score = calculate_winning_patterns(players[1]->getsymbol());
+            cout << "Player with letter 'X' scored" << " " << x_score << " "<<",while player with letter 'O' scored"<<" " << o_score<< "."<<endl;
 
-            if (player1score > player2score) { 
-                cout << "Game ended. Player with letter"<< " " <<players[0]->getsymbol()<<" "<<"scored"<<" "<< player1score<<" "<<",while player with the letter"<<" "<<players[1]->getsymbol()<<" "<<"scored" <<" "<< player2score<<".\n";
-                cout << players[0]
-                ->getname() << " wins\n";
-                flag = true;
+            if (this->n_moves == 24) {
+                moves = this->n_moves;
+                if (o_score > x_score) return true;
+                return false;
+            } else if (this->n_moves == 25) {
+                moves = this->n_moves;
+                if (x_score > o_score) return true;
                 return false;
             }
-            else if (player2score > player1score) {
-                cout << "Game ended. Player with letter"<< " " <<players[0]->getsymbol()<<" "<<"scored"<<" "<< player1score<<" "<<",while player with the letter"<<" "<<players[1]->getsymbol()<<" "<<"scored" <<" "<< player2score<<".\n";
-                cout << players[1]
-                ->getname() << " wins\n";
-                flag = true;
-                return false;
-            }
-        
         }
-    return false;
+        return false;
     }
 
     bool is_draw() override {
-        return n_moves == 25 && !flag;
+        return this->n_moves == 25 && !is_win();
     }
 
     bool game_is_over() override {
-        return n_moves == 25;
+        return this->n_moves == 25;
     }
 };
 
@@ -149,9 +166,8 @@ public:
     }
 
     void getmove(int& x, int& y) override {
-        
+        if (moves >= 24) return;
         x = rand() % 5;
         y = rand() % 5;
-        
     }
 };
